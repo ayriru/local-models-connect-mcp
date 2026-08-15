@@ -1,0 +1,78 @@
+# Copy to ~/.config/local-models-connect/config.toml,
+# or point to another file with --config=<path> or the LMCP_CONFIG env var.
+#
+# 任意命名的 provider 段:
+#   [<provider-name>]      顶层段 = 一个服务商
+#   [<provider-name>.<model>]  子段 = 该服务商下的模型
+#
+# 请求协议由 protocol 字段决定:
+#   protocol = "openai-responses" | "openai-chat" | "anthropic"
+#   其他值（如 "unsloth"）回退为 openai-chat 协议
+
+[unsloth]
+enable = true
+description = "Unsloth Studio 本地推理服务"
+protocol = "openai-chat"
+
+# 未指定模型时，是否优先选择服务端已加载(loaded)的模型（默认 true）。
+# 硬性指定模型(chat 传 model)时始终使用指定模型，不受此开关影响。
+auto_select_loaded = true
+base_url = "http://localhost:8000/v1"
+
+# api_key 支持三种方式: 明文 / file:<路径> / env:<变量名>
+# api_key = "sk-..."
+# api_key = "file:/home/user/.keys/unsloth.key"
+# api_key = "env:UNSLOTH_API_KEY"
+
+# 附加请求头，支持 ${env:VAR} 插值
+headers = ["Authorization: Bearer ${env:UNSLOTH_STUDIO_AUTH_TOKEN}"]
+
+# 全局生成参数（profile），可被模型级 profile 和调用时 profile 覆盖
+profile = { temperature = 0.2, top_p = 0.8 }
+
+[unsloth.ornith]
+name = "Ornith"
+id = "unsloth/Ornith-1.0-9B-GGUF:Q4_K_M"
+
+# 能力列表（供 LLM 选型匹配）: vision / tools / streaming / thinking / coding / embedding ...
+capabilities = ["coding", "tools", "streaming"]
+# 选型优先级（数字越大越优先，用于多个模型能力相同时的排序；默认 0）
+priority = 1
+# 选型提示（一句话说明适合什么场景，暴露给 LLM 和宿主）
+hint = "适合代码生成与工具调用，速度快"
+
+# 模型级 profile 覆盖全局（扁平写法：直接给生成参数）
+# profile = { temperature = 0.7, max_tokens = 2048 }
+
+# 分组写法：按场景给不同参数，调用时自动选择
+# （消息含图片→vision 分组，纯文本→chat 分组；也可显式传 profile_key 指定）
+# profile = {
+#   chat  = { temperature = 0.7, max_tokens = 2048, enable_thinking = false },
+#   vision = { temperature = 0.2, max_tokens = 4096, enable_thinking = false },
+# }
+# include_reasoning = true  # 返回模型的思考过程(thinking/reasoning_content)；默认 false 剥离，避免污染上下文
+
+# 默认起始对话（调用 chat 不传 messages 时使用）
+# messages = [ { role = "user", content = "What is Unsloth?" } ]
+
+# --- 常用生成参数参考（写入 profile） ---
+# temperature = 0.7
+# top_p = 0.8
+# max_tokens = 1024
+# top_k = 20
+# min_p = 0.05
+# repetition_penalty = 1.1
+# enable_thinking = true
+# enable_tools = true
+# enabled_tools = ["web_search", "python", "terminal"]
+# stream = true
+
+# --- 第二个 provider 示例（Anthropic 协议） ---
+# [anthropic]
+# enable = true
+# provider = "anthropic"
+# api_key = "env:ANTHROPIC_API_KEY"
+#
+# [anthropic.claude]
+# id = "claude-sonnet-4-5"
+# profile = { temperature = 0.3, max_tokens = 4096 }
